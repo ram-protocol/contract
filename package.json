@@ -1,0 +1,13 @@
+{
+  "name": "ram-protocol-contract",
+  "version": "1.0.0",
+  "description": "Ram Protocol contract interfaces",
+  "main": "contracts/Controller.sol",
+  "repository": "github-flashboys:ram-protocol/contract.git",
+  "author": "Flash Boys",
+  "license": "MIT",
+  "devDependencies": {
+    "@truffle/hdwallet-provider": "^1.4.0",
+    "truffle": "^5.3.10"
+  }
+}
