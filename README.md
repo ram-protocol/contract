@@ -34,3 +34,6 @@ For more information, check out [our document](https://docs.rammer.finance/dev/g
 | `USDTProxy` | `0x897d622aB744B0A9464a89166f47C644F5c1cC4C` | [![](https://img.shields.io/badge/viewblock.io-USDTProxy-success?logo=cachet)](https://viewblock.io/thundercore/address/0x897d622aB744B0A9464a89166f47C644F5c1cC4C?tab=code) |
 | `WBTCImplementation` | `0xAbc92Ba2A618d4f5F64fd0745Fd5b188d56caC80` | [![](https://img.shields.io/badge/viewblock.io-WBTCImplementation-success?logo=cachet)](https://viewblock.io/thundercore/address/0xAbc92Ba2A618d4f5F64fd0745Fd5b188d56caC80?tab=code) |
 | `WBTCProxy` | `0x3592a87627f362934adfDc923601B5BFa8e62367` | [![](https://img.shields.io/badge/viewblock.io-WBTCProxy-success?logo=cachet)](https://viewblock.io/thundercore/address/0x3592a87627f362934adfDc923601B5BFa8e62367?tab=code) |
+| `HUSDImplementation` | `0x0f68F0Cb7C32652ae884eF1dEFC651005b2C422E` | [![](https://img.shields.io/badge/viewblock.io-HUSDImplementation-success?logo=cachet)](https://viewblock.io/thundercore/address/0x0f68F0Cb7C32652ae884eF1dEFC651005b2C422E?tab=code) |
+| `HUSDProxy` | `0x9daEc6B1bE6cC593B4796801E98A7e1442569c1d` | [![](https://img.shields.io/badge/viewblock.io-HUSDProxy-success?logo=cachet)](https://viewblock.io/thundercore/address/0x9daEc6B1bE6cC593B4796801E98A7e1442569c1d?tab=code) |
+
