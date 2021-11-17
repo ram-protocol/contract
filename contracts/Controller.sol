@@ -1,4 +1,4 @@
-pragma solidity ^0.5.16;
+pragma solidity 0.5.17;
 
 import './OpenZeppelin/Initializable.sol';
 
@@ -9,7 +9,6 @@ import "./ExponentialNoError.sol";
 import "./PriceOracle.sol";
 import "./RToken.sol";
 import "./tokens/Ram.sol";
-import "./Unitroller.sol";
 
 contract Controller is Initializable, ControllerV5Storage, ControllerInterface, ControllerErrorReporter, ExponentialNoError {
     /// @notice Emitted when an admin supports a market
@@ -93,7 +92,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         admin = msg.sender;
     }
 
-    function initialize(address adminToBe, PriceOracle oracle) public initializer {
+    function initialize(address adminToBe, PriceOracle oracle) external initializer {
         adminToBe;
         admin = msg.sender;
         _setPriceOracle(oracle);
@@ -127,7 +126,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @param rTokens The list of addresses of the rToken markets to be enabled
      * @return Success indicator for whether each corresponding market was entered
      */
-    function enterMarkets(address[] memory rTokens) public returns (uint[] memory) {
+    function enterMarkets(address[] calldata rTokens) external returns (uint[] memory) {
         uint len = rTokens.length;
 
         uint[] memory results = new uint[](len);
@@ -154,7 +153,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
             return Error.MARKET_NOT_LISTED;
         }
 
-        if (marketToJoin.accountMembership[borrower] == true) {
+        if (marketToJoin.accountMembership[borrower]) {
             // already joined
             return Error.NO_ERROR;
         }
@@ -267,14 +266,12 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @param mintTokens The number of tokens being minted
      */
     function mintVerify(address rToken, address minter, uint actualMintAmount, uint mintTokens) external {
-        // Shh - currently unused
-        rToken;
-        minter;
-        actualMintAmount;
-        mintTokens;
+        if (rToken == address(0) && minter == address(0)) {
+            // Shh - currently unused
+            actualMintAmount;
+            mintTokens;
 
-        // Shh - we don't ever want this hook to be marked pure
-        if (false) {
+            // Shh - we don't ever want this hook to be marked pure
             maxAssets = maxAssets;
         }
     }
@@ -404,13 +401,11 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @param borrowAmount The amount of the underlying asset requested to borrow
      */
     function borrowVerify(address rToken, address borrower, uint borrowAmount) external {
-        // Shh - currently unused
-        rToken;
-        borrower;
-        borrowAmount;
+        if (rToken == address(0) && borrower == address(0)) {
+            // Shh - currently unused
+            borrowAmount;
 
-        // Shh - we don't ever want this hook to be marked pure
-        if (false) {
+            // Shh - we don't ever want this hook to be marked pure
             maxAssets = maxAssets;
         }
     }
@@ -676,7 +671,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
                 account liquidity in excess of collateral requirements,
      *          account shortfall below collateral requirements)
      */
-    function getAccountLiquidity(address account) public view returns (uint, uint, uint) {
+    function getAccountLiquidity(address account) external view returns (uint, uint, uint) {
         (Error err, uint liquidity, uint shortfall) = getHypotheticalAccountLiquidityInternal(account, RToken(0), 0, 0);
 
         return (uint(err), liquidity, shortfall);
@@ -706,7 +701,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         address account,
         address rTokenModify,
         uint redeemTokens,
-        uint borrowAmount) public view returns (uint, uint, uint) {
+        uint borrowAmount) external view returns (uint, uint, uint) {
         (Error err, uint liquidity, uint shortfall) = getHypotheticalAccountLiquidityInternal(account, RToken(rTokenModify), redeemTokens, borrowAmount);
         return (uint(err), liquidity, shortfall);
     }
@@ -941,7 +936,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
             return fail(Error.MARKET_ALREADY_LISTED, FailureInfo.SUPPORT_MARKET_EXISTS);
         }
 
-        rToken.isRToken(); // Sanity check to make sure its really a RToken
+        require(rToken.isRToken(), "This is not a RToken contract!");
 
         markets[address(rToken)] = Market({isListed: true, isRammed: false, collateralFactorMantissa: 0});
 
@@ -986,6 +981,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      */
     function _setBorrowCapGuardian(address newBorrowCapGuardian) external {
         require(msg.sender == admin, "only admin can set borrow cap guardian");
+        require(newBorrowCapGuardian != address(0), "New borrow cap guardian must have its owned valid address");
 
         // Save current value for inclusion in log
         address oldBorrowCapGuardian = borrowCapGuardian;
@@ -1002,9 +998,13 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @param newPauseGuardian The address of the new Pause Guardian
      * @return uint 0=success, otherwise a failure. (See enum Error for details)
      */
-    function _setPauseGuardian(address newPauseGuardian) public returns (uint) {
+    function _setPauseGuardian(address newPauseGuardian) external returns (uint) {
         if (msg.sender != admin) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
+        }
+
+        if (newPauseGuardian == address(0)) {
+            return fail(Error.INVALID_ADDRESS, FailureInfo.SET_PAUSE_GUARDIAN_ADDRESS_CHECK);
         }
 
         // Save current value for inclusion in log
@@ -1019,7 +1019,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         return uint(Error.NO_ERROR);
     }
 
-    function _setMintPaused(RToken rToken, bool state) public returns (bool) {
+    function _setMintPaused(RToken rToken, bool state) external returns (bool) {
         require(markets[address(rToken)].isListed, "cannot pause a market that is not listed");
         require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
@@ -1029,7 +1029,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         return state;
     }
 
-    function _setBorrowPaused(RToken rToken, bool state) public returns (bool) {
+    function _setBorrowPaused(RToken rToken, bool state) external returns (bool) {
         require(markets[address(rToken)].isListed, "cannot pause a market that is not listed");
         require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
@@ -1039,7 +1039,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         return state;
     }
 
-    function _setTransferPaused(bool state) public returns (bool) {
+    function _setTransferPaused(bool state) external returns (bool) {
         require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
@@ -1048,7 +1048,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         return state;
     }
 
-    function _setSeizePaused(bool state) public returns (bool) {
+    function _setSeizePaused(bool state) external returns (bool) {
         require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
@@ -1057,9 +1057,10 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         return state;
     }
 
-    function _become(Unitroller unitroller) public {
-        require(msg.sender == unitroller.admin(), "only unitroller admin can change brains");
-        require(unitroller._acceptImplementation() == 0, "change not authorized");
+    function _transferAdmin(address newAdmin) external {
+        require(msg.sender == admin, "only current admin can transfer admin");
+        require(newAdmin != admin, "no changes");
+        admin = newAdmin;
     }
 
     /**
@@ -1074,7 +1075,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
     /**
      * @notice Recalculate and update RAM speeds for all RAM markets
      */
-    function refreshRamSpeeds() public {
+    function refreshRamSpeeds() external {
         require(msg.sender == tx.origin, "only externally owned accounts may refresh speeds");
         refreshRamRateInternal();
         refreshRamSpeedsInternal();
@@ -1261,7 +1262,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @notice Claim all the ram accrued by holder in all markets
      * @param holder The address to claim RAM for
      */
-    function claimRam(address holder) public {
+    function claimRam(address holder) external {
         return claimRam(holder, allMarkets);
     }
 
@@ -1328,7 +1329,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @param recipient The address of the recipient to transfer RAM to
      * @param amount The amount of RAM to (possibly) transfer
      */
-    function _grantRam(address recipient, uint amount) public {
+    function _grantRam(address recipient, uint amount) external {
         require(adminOrInitializing(), "only admin can grant ram");
         uint amountLeft = grantRamInternal(recipient, amount);
         require(amountLeft == 0, "insufficient ram for grant");
@@ -1340,7 +1341,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @param contributor The contributor whose RAM speed to update
      * @param ramSpeed New RAM speed for contributor
      */
-    function _setContributorRamSpeed(address contributor, uint ramSpeed) public {
+    function _setContributorRamSpeed(address contributor, uint ramSpeed) external {
         require(adminOrInitializing(), "only admin can set ram speed");
 
         // note that RAM speed could be set to 0 to halt liquidity rewards for a contributor
@@ -1359,7 +1360,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @notice Set the amount of RAM distributed per block
      * @param ramRate_ The amount of RAM wei per block to distribute
      */
-    function _setRamRate(uint ramRate_) public {
+    function _setRamRate(uint ramRate_) external {
         require(adminOrInitializing(), "only admin can change ram rate");
 
         uint oldRate = ramRate;
@@ -1369,7 +1370,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         refreshRamSpeedsInternal();
     }
 
-    function _setRamRateDecay(uint32 period, uint192 rate) public {
+    function _setRamRateDecay(uint32 period, uint192 rate) external {
         require(adminOrInitializing(), "only admin can change ram rate decay");
 
         RateDecay memory oldDecay = ramRateDecay;
@@ -1385,7 +1386,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
         refreshRamRateInternal();
     }
 
-    function _setRamAddress(address ramAddress_) public {
+    function _setRamAddress(address ramAddress_) external {
         require(adminOrInitializing(), "only admin can set ram address");
         ramAddress = ramAddress_;
     }
@@ -1394,7 +1395,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @notice Add markets to ramMarkets, allowing them to earn RAM in the flywheel
      * @param rTokens The addresses of the markets to add
      */
-    function _addRamMarkets(address[] memory rTokens) public {
+    function _addRamMarkets(address[] calldata rTokens) external {
         require(adminOrInitializing(), "only admin can add ram market");
 
         for (uint i = 0; i < rTokens.length; i++) {
@@ -1431,7 +1432,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @notice Remove a market from ramMarkets, preventing it from earning RAM in the flywheel
      * @param rToken The address of the market to drop
      */
-    function _dropRamMarket(address rToken) public {
+    function _dropRamMarket(address rToken) external {
         require(msg.sender == admin, "only admin can drop ram market");
 
         Market storage market = markets[rToken];
@@ -1448,7 +1449,7 @@ contract Controller is Initializable, ControllerV5Storage, ControllerInterface, 
      * @dev The automatic getter may be used to access an individual market.
      * @return The list of market addresses
      */
-    function getAllMarkets() public view returns (RToken[] memory) {
+    function getAllMarkets() external view returns (RToken[] memory) {
         return allMarkets;
     }
 

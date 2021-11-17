@@ -1,4 +1,4 @@
-pragma solidity ^0.5.16;
+pragma solidity 0.5.17;
 
 import "./RToken.sol";
 
@@ -21,10 +21,10 @@ contract REther is Initializable, RToken {
     function initialize(ControllerInterface controller_,
                 InterestRateModel interestRateModel_,
                 uint initialExchangeRateMantissa_,
-                string memory name_,
-                string memory symbol_,
+                string calldata name_,
+                string calldata symbol_,
                 uint8 decimals_,
-                address payable admin_) public initializer {
+                address payable admin_) external initializer {
         // Creator of the contract is admin during initialization
         admin = msg.sender;
 
@@ -83,6 +83,7 @@ contract REther is Initializable, RToken {
     function repayBorrow(uint amount) external payable returns(uint) {
         (uint err,) = repayBorrowInternal(amount);
         requireNoError(err, "repayBorrow failed");
+        return err;
     }
 
     /**

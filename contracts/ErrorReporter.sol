@@ -1,4 +1,4 @@
-pragma solidity ^0.5.16;
+pragma solidity 0.5.17;
 
 contract ControllerErrorReporter {
     enum Error {
@@ -19,7 +19,8 @@ contract ControllerErrorReporter {
         REJECTION,
         SNAPSHOT_ERROR,
         TOO_MANY_ASSETS,
-        TOO_MUCH_REPAY
+        TOO_MUCH_REPAY,
+        INVALID_ADDRESS
     }
 
     enum FailureInfo {
@@ -42,7 +43,8 @@ contract ControllerErrorReporter {
         SET_PRICE_ORACLE_OWNER_CHECK,
         SUPPORT_MARKET_EXISTS,
         SUPPORT_MARKET_OWNER_CHECK,
-        SET_PAUSE_GUARDIAN_OWNER_CHECK
+        SET_PAUSE_GUARDIAN_OWNER_CHECK,
+        SET_PAUSE_GUARDIAN_ADDRESS_CHECK
     }
 
     /**
@@ -88,7 +90,8 @@ contract TokenErrorReporter {
         TOKEN_INSUFFICIENT_BALANCE,
         TOKEN_INSUFFICIENT_CASH,
         TOKEN_TRANSFER_IN_FAILED,
-        TOKEN_TRANSFER_OUT_FAILED
+        TOKEN_TRANSFER_OUT_FAILED,
+        INVALID_ADDRESS
     }
 
     /*
@@ -178,7 +181,8 @@ contract TokenErrorReporter {
         TRANSFER_TOO_MUCH,
         ADD_RESERVES_ACCRUE_INTEREST_FAILED,
         ADD_RESERVES_FRESH_CHECK,
-        ADD_RESERVES_TRANSFER_IN_NOT_POSSIBLE
+        ADD_RESERVES_TRANSFER_IN_NOT_POSSIBLE,
+        SET_PENDING_ADMIN_ADDRESS_CHECK
     }
 
     /**

@@ -1,4 +1,4 @@
-pragma solidity ^0.5.16;
+pragma solidity 0.5.17;
 
 import "./RToken.sol";
 
@@ -21,10 +21,10 @@ contract RErc20 is Initializable, RToken, RErc20Interface {
                         ControllerInterface controller_,
                         InterestRateModel interestRateModel_,
                         uint initialExchangeRateMantissa_,
-                        string memory name_,
-                        string memory symbol_,
+                        string calldata name_,
+                        string calldata symbol_,
                         uint8 decimals_,
-                        address payable admin_) public initializer {
+                        address payable admin_) external initializer {
         admin = msg.sender;
         // RToken initialize does the bulk of the work
         super.initialize(controller_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
